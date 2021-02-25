@@ -1,31 +1,45 @@
-// aca busca los archivos de acuerdo a la extensión 
 let fs = require('fs');
 let path = require('path');
-let directory = process.argv[2];
-let ext = process.argv[3];
+let directive = process.argv[2];
+let extensiones = /(.md|.markdown|.mdown|.mkdn|.mkd|.mdwn|.mdtext|.text|.Rmd)$/i;
 
-let extn = '.' + ext;
-fs.readdir(directory, (err, data)=>{
-    if(err){
-       console.log(err);
-    } else {
-       if(extn === ext){
-        let filter = [];
-        data.forEach((file)=>{
-          
-            if(path.extname(file)===extn){
-
-                filter.push(file)
-                console.log(filter)
-                        
-            }
-                 
-        });
+const pathFile = (file) =>{
+  fs.readFile(file, {encoding: 'utf8'}, (err, data)=> {
+      if(data){
+         let str = data.toString();
+         console.log(str);
+      }else{
+         console.error(err); 
+      }
+  });
+};
+const pathDirectory = (file) =>{
+   fs.readdir(file, (err, data)=>{
+       if(err){
+           console.log(err);
+       }else{
+           filter = [];
+           data.forEach(file => {
+               if(extensiones.exec(path.extname(file))){
+                   filter.push(file);
+               }
+           });
+           if(Object.entries(filter).length === 0){
+               console.log('no se encuentran archivos con extensión md');
+           }else{
+               filter.forEach(fileMd =>{
+                   let absolute = `${directive}\\${fileMd}`;
+                      pathFile(absolute); 
+                });
+           }
        }
-       console.log('probando')
-       
-      
-        
-    }
-     
-});
+   });
+};
+
+if(fs.readFile(directive) === true){
+    console.log('es un archivo');
+    pathFile(directive);
+}else{
+    console.log('es un directorio');
+    pathDirectory(directive);
+}
