@@ -19,5 +19,8 @@
   "bugs": {
     "url": "https://github.com/asmedina24/SCL015-md-links/issues"
   },
-  "homepage": "https://github.com/asmedina24/SCL015-md-links#readme"
+  "homepage": "https://github.com/asmedina24/SCL015-md-links#readme",
+  "dependencies": {
+    "markdown-it": "^12.0.4"
+  }
 }
