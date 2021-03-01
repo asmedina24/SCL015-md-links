@@ -1,29 +1,17 @@
-// let fs = require('fs');
-// let path = require('path');
+const fs = require('fs');
 
+//lee el archivo que le entreguemos
+const readFile = (path) => { // Función para leer archivo
+  let content = new Promise((resolve, reject) => {
+    fs.readFile(path, 'utf8', (err, data) => { // forma en que puede leer un archivo asincrono
+      if (err) {
+        reject(err);
+      }
+      resolve(data);
+    });
+  })
+  return content
+}
 
-
-// // Buscar en directorio
-
-// module.exports =  (directory, ext, callback) => {
-//     fs.readdir(directory, function(err, list) {
-//         if (err) {
-//             console.log(111, err)
-//             return callback(err);
-//         }
-
-//         list = list.filter((file) => {
-//             if (path.extname(file) === '.' + ext){
-//                 return true
-//             }
-//             // console.log('no hay archivo')
-//         })
-//         return callback(null, list)
-
-//     })
-    
-    
-
-// };
-
+module.exports.readFile = readFile;
 
