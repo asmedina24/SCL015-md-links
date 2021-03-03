@@ -3,51 +3,133 @@ let fs = require('fs'); // Modulo de sistema de archivos
 let path = require('path'); // coloca la ruta a absoluta, busca la ruta rela o abso
 const folder = process.argv[2]; // argumento que busca la posicion
 const allowedExt = /(.md|.mdtxt|.mdwn|.mkd|.mdown|.markdown|.mdtxt|.text|.Rmd)$/i; // Extensiones permitidas
+const absolutePath = path.normalize(path.resolve(folder)); // normalize() arregla la ruta. resolve()la hace absoluta
+const markdownIt = require('markdown-it')();
+const readFile = require('./funtion');
+const json = require('jsdom');
+const { JSDOM } = json;
+const colors = require('colors');
+const fetchUrl = require("fetch").fetchUrl;// manipula los http peticiones y respuestas 400 y 200, 
+const { rejects } = require('assert');
 
-// const marked = require('marked');
-// let findMd = require('./funtion.js');
+let allLink = []; 
+let detailEnlace = {};
 
-const directory = (ejemplo) => {
-    fs.readdir(ejemplo, (err, data) => {
-        if (err) {
-            console.log('Directorio no encontrado');
-            console.log(err)
+// Leer el directorio y filtrar archivos que cumplan con extension md
+const directory = (route) => {
+    fs.readdir(route, (error, data)  =>{
+        if(error){
+            console.log(error.code, 'No es un directorio')
         } else {
             filter = [];
-            data.forEach(file => {
-                if (allowedExt.exec(path.extname(file))) { // Metodo exec() ejecuta busqueda sobre coincidencias, devuelve resultado como array o null 
-                    filter.push(file);  //path.extname devuelde del punto en adelante de la extension
-                }
+            data.forEach(archive => {
+                if(allowedExt.exec(path.extname(archive))){ 
+                    filter.push(archive)
+                } 
             });
-            console.log(filter)
-            if (filter.length === 0) { // Object.entries verifica si esta array vacio
-                console.log('Nose se encontraron archivos con extension md');
+            if(filter.lenght === 0){
+                console.log('No se encontraton archivos .md')
             } else {
-                filter.forEach(fileMarkdown => {
-                    const probando = `${ejemplo}\\${fileMarkdown}`;
-                    readAr(probando)
-                    
-                })
+                filter.forEach(archiveMd =>{
+                    const absoluteRoute = `${route}\\${archiveMd}`;
+                    console.log('Archivo el cual esta leyendo', absoluteRoute)
+                });
             }
         }
     });
-}
-directory(folder);
+} 
+// leer el archivo con extension md
+const file= (fileRoute)=> {
+    fs.readFile(fileRoute, {encoding: 'utf-8'}, (error, data) => { // lea el archivo
+        if(data){
+            const dataString = data.toString(); //convierta la data en string
+            getLink(dataString, fileRoute);
+            stateLinks(allLink)
+            .then(res => {
+                console.log(res)
+            });
+            // console.log(dataString)  // la data y el archivo que leyo}
+            if(allLink.length > 1 ){
+                allLink.forEach(link => {
+                    console.log( colors.green(link.text), colors.blue(link.href))
+                  
+                })
+            } else {
+                console.log('No se encontraron documentos con Links')
+            }
+        } else{
+            console.log(error.code, 'Esta ruta es inválida.')
 
-// leyendo las lineas del archivos 
-const readAr = (leerArchivo) => {
-    fs.readFile(leerArchivo, 'utf-8', (error, data) => {
-        if (error) {
-            console.error(error);
-            return;
         }
-        const lines = data.split('\n').length - 1; //
-        console.log('Este documento tiene:', lines, 'lineas');
-        
-        
-        // console.log(data);
 
-    })
-
-
+    }) 
 }
+
+// Obtener los link
+const getLink = (param1 , param2) => {
+    let renderer =  markdownIt.render(param1);//nos trae los links sin informacion relevante y con etiqueta privada
+    const content = new JSDOM(renderer); 
+    const liks = Array.from(content.window.document.querySelectorAll('a')); // crea un array con todas las a
+    allLink = [];
+    liks.forEach(enlace =>{
+      
+        if(enlace.href.includes('http')) {
+            detailEnlace =  { 
+                href: enlace.href,
+                text: enlace.text,
+                file: param2,
+            }
+            allLink.push(detailEnlace);
+            
+        }
+    })
+}
+
+//Funcion para filtar los estados del link
+
+const stateLinks = (link, num) =>{
+    // console.log(111, link.length)
+    
+    return new Promise((resolve, reject)=>{
+        link.forEach(elemento => {
+            fetchUrl(elemento.href, (error, meta, body) =>{
+                if(error){
+                    reject(error);
+                }else{
+                    resolve(meta.status);
+                }
+    
+            });
+          
+        })
+        
+     })
+}
+
+
+
+// si es un archivo o un directorio 
+if (fs.lstatSync(folder).isFile()) {
+    console.log('Esto es un archivo')
+    file(folder);
+   
+}  else {
+    console.log('Esto es un directorio')
+   directory(folder); 
+}
+
+
+// fetchUrl(elemento.href, (error, meta, body) =>{
+       
+//     // console.log(444, body.toString());
+//     //  console.log(555, meta.responseHeaders);
+//     if(meta.status <= 400) {
+//         // console.log('_________________________________________')
+//         // console.log(('File: '+ elemento.file + '\n'), colors.blue('Titulo: ' + elemento.text + '\n'), colors.yellow('href: ' + elemento.href + '\n'),  colors.green('Estado: ' + meta.status+ '\n'), colors.blue('validate: '+meta.responseHeaders.server));
+//     } else {
+         
+//         // console.log('________enlace roto__________')
+//         // console.log(('File: '+ elemento.file + '\n'), colors.blue('Titulo: ' + elemento.text + '\n'), colors.yellow('href: ' + elemento.href + '\n'),  colors.green('Estado: ' + meta.status+ '\n'), colors.red('validate: '+meta.responseHeaders.server));
+//     }
+    
+// }) 
