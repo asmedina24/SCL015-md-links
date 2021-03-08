@@ -86,5 +86,5 @@ Las dos opiciones combinadas, además de Total y Unique, agregan la siguiente es
 ![opcion validate and stats](https://i.imgur.com/t4zfZLl.jpg)
 
 ## 5. Autor
-* Alejandra Medina
-* Caroline Jeldres
+* [Alejandra Medina](https://github.com/asmedina24) 
+* [Caroline Jeldres](https://github.com/Caroline-Jeldres) 
