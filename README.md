@@ -31,14 +31,14 @@ algunas estadísticas.
 * Para instalar la librería ejecuta el siguiente comando en la terminal:
 
 ```js
-$ npm i md-links-mj
+$ npm i md-links-jm
 ```
 ## 3. Uso de la libreria
 
  En el archivo JS:
 
 ```js
-const mdlinks = require('md-links-mj');   
+const mdlinks = require('md-links-jm');   
 ```
 
 En la terminal:
