@@ -13,32 +13,22 @@
 Md-links-mj es una libreria que lee y analiza archivos en formato markdown para verificar los links contenidos y reportar su estado (sin conexión, útiles o rotos) y dar algunas estadísticas que se imprimirán en consola como la cantidad de links, el estado de los links y  el total de links únicos.
 
 
-<<<<<<< HEAD
-Dentro de una comunidad de código abierto, nos han propuesto crear una
-<<<<<<< HEAD
-herramienta usando [Node.js](https://es.wikipedia.org/Wikipedia:Portada), que lea y analice archivos
-=======
-herramienta usando [Node.js](https://httpstat.us/520), que lea y analice archivos
->>>>>>> befff593918ded47f1d671f292cf060e2e74ccc7
-en formato `Markdown`, para verificar los links que contengan y reportar
-algunas estadísticas.
-=======
+
 ## 2. Instalación
->>>>>>> 9fd9fc367e2b30f8f53fc32dc95b86384ea2cc65
 
 * Instalar previamente npm y Node.js en tu computador.
 
 * Para instalar la librería ejecuta el siguiente comando en la terminal:
 
 ```js
-$ npm i md-links-jm
+$ npm i md-links-mj
 ```
 ## 3. Uso de la libreria
 
  En el archivo JS:
 
 ```js
-const mdlinks = require('md-links-jm');   
+const mdlinks = require('md-links-mj');   
 ```
 
 En la terminal:
@@ -96,5 +86,5 @@ Las dos opiciones combinadas, además de Total y Unique, agregan la siguiente es
 ![opcion validate and stats](https://i.imgur.com/t4zfZLl.jpg)
 
 ## 5. Autor
-* [Alejandra Medina](https://github.com/asmedina24) 
-* [Caroline Jeldres](https://github.com/Caroline-Jeldres) 
+* Alejandra Medina
+* Caroline Jeldres

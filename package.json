@@ -1,6 +1,6 @@
 {
-  "name": "md-links-jm",
-  "version": "0.1.0",
+  "name": "md-links-mj",
+  "version": "0.1.2",
   "dependencies": {
     "assert": "^2.0.0",
     "colors": "^1.4.0",
