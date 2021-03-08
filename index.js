@@ -1,106 +1,200 @@
-// aca busca los archivos de acuerdo a la extensión 
-let fs = require('fs'); // Modulo de sistema de archivos
-let path = require('path'); // coloca la ruta a absoluta, busca la ruta rela o abso
-const folder = process.argv[2]; // argumento que busca la posicion
-const allowedExt = /(.md|.mdtxt|.mdwn|.mkd|.mdown|.markdown|.mdtxt|.text|.Rmd)$/i; // Extensiones permitidas
-const absolutePath = path.normalize(path.resolve(folder)); // normalize() arregla la ruta. resolve()la hace absoluta
-const markdownIt = require('markdown-it')();
-const readFile = require('./funtion');
-const json = require('jsdom');
-const { JSDOM } = json;
+const fs = require('fs'); // fs es el módulo del sistema de archivos Node.js le permite trabajar con el sistema de archivos en su computadora.
+const path = require('path'); //El path módulo proporciona utilidades para trabajar con rutas de archivos y directorios. 
+const http = require('http');
 const colors = require('colors');
-const fetchUrl = require("fetch").fetchUrl;// manipula los http peticiones y respuestas 400 y 200, 
-// const URL = require("url").URL;
+const markdownIt = require('markdown-it')();
+const jsdom = require("jsdom");
+const { JSDOM } = jsdom;
+const fetchUrl = require('fetch').fetchUrl;
+const resolve = require('path').resolve;
+ const { rejects } = require('assert');
+const { Console } = require('console');
+// resolve('../../bb/tmp.txt')
 
-let allLink = [];
-let detailEnlace = {};
-let brokenLinks = [];
-// Leer el directorio y filtrar archivos que cumplan con extension md
-const directory = (route) => {
-    fs.readdir(route, (error, data) => {
-        if (error) {
-            console.log(error.code, 'No es un directorio')
-        } else {
-            filter = [];
-            data.forEach(archive => {
-                if (allowedExt.exec(path.extname(archive))) {
-                    filter.push(archive)
-                }
-            });
-            if (filter.lenght === 0) {
-                console.log('No se encontraton archivos .md')
-            } else {
-                filter.forEach(archiveMd => {
-                    const absoluteRoute = `${route}\\${archiveMd}`;
-                    console.log('Archivo el cual esta leyendo', absoluteRoute)
-                });
-            }
-        }
+let allLinks = []
+let detailsLinks = {};
+
+const allowedExtensions = /(.md|.markdown|.mdown|.mkdn|.mkd|.mdwn|.mdtxt|.text|.Rmd )$/i;  // Extenciones permitidas  Porque sucede esto??
+
+
+const filePath = (fileRoute) => {
+  return new Promise((resolve, reject) => {
+    fs.readFile(fileRoute, { encoding: 'utf8' }, (err, data) => { // fs.readFile()método se utiliza para leer archivos en su computadora. Este devuleve un objeto Buffer (secuencia de bytes de longitud fija)
+      if (data) {
+        const str = data.toString();
+        resolve(getLink(str, fileRoute))
+      } else {
+        reject(console.log(colors.red('Error: Ruta Invalida')))
+      }
     });
+  })
 }
-// leer el archivo con extension md
-const file = (fileRoute) => {
-    fs.readFile(fileRoute, { encoding: 'utf-8' }, (error, data) => { // lea el archivo
-        if (data) {
-            const dataString = data.toString(); //convierta la data en string
-            getLink(dataString, fileRoute);
-            stateLinks(allLink, 200);
-            // console.log(brokenLinks, 'brokennnn')
-            // console.log(dataString)  // la data y el archivo que leyo}
-            if (allLink.length > 1) {
-                allLink.forEach(link => {
-                    console.log(colors.green(link.text), colors.blue(link.href))
-                })
+
+// Funcion que obtiene el link, el texto y el archivo 
+const getLink = (fileMd, pathParameter) => {
+  tokens = markdownIt.render(fileMd); // convierte el archivo .md a html
+  const domContent = new JSDOM(tokens); // 
+  const links = Array.from(domContent.window.document.querySelectorAll('a'));
+  allLinks = [];
+   links.forEach((link) => {
+         if (link.href.includes("http")) {
+      detailsLinks = {
+        href: link.href,
+        text: link.text,
+        file: pathParameter,
+      }
+      allLinks.push(detailsLinks)
+    }
+  })
+  return allLinks  
+}
+
+
+const opcionFile = (folder) => {
+  filePath(folder)
+    .then(res => {
+      res.map(element => {
+        console.log('_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ ')
+        console.log(colors.cyan('\n'+ ' Nombre: '+ element.file+ '\n'), colors.yellow('Titulo: '+element.text+ '\n'), colors.green('Enlace: '+ element.href));
+      })
+    })
+    .catch(err => {
+      console.log(err)
+    })
+}
+
+
+const opcionValidate = (folder) => {
+  filePath(folder)
+    .then(res => {
+      res.forEach((link) => {
+        linkStatus(link.href)
+          .then(response => {
+            if (response >= 400) {
+              console.log('_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ ')
+              console.log(colors.cyan('\n'+ ' Nombre: '+ link.file + '\n'), colors.yellow('Titulo: ' + link.text+ '\n'), colors.blue('Enlace: '+ link.href+ '\n'), colors.red('Estatus: '+ response+ '\n'), colors.red('Estado: Fallido'))
             } else {
-                console.log('No se encontraron documentos con Links')
+              console.log('_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ ')
+              console.log(colors.cyan('\n'+ ' Nombre: '+ link.file + '\n'), colors.yellow('Titulo: ' + link.text+ '\n'), colors.blue('Enlace: '+ link.href+ '\n'), colors.green('Estatus: '+ response+ '\n'), colors.green('Estado: OK'))
             }
+          })
+          .catch(err => {
+            console.log(err)
+          })
+      })
+    })
+    .catch(err => {
+      console.log(err)
+    })
+}
+
+
+const opcionStats = (folder) => {
+  filePath(folder)
+    .then(res => {
+      console.log(colors.cyan('TOTAL:', res.length))
+    })
+    .catch(err => {
+      console.log(err)
+    })
+}
+
+
+const opcionStatsValidate = (folder) => {
+  filePath(folder)
+    .then(res => {
+      const broken = [];
+      res.forEach((link) => {
+        broken.push(linkStatus(link.href));
+      })
+      Promise.all(broken)
+        .then(response => {
+          const result = response.filter(status => {
+            if (status >= 400) {
+              return status;
+            }
+          })
+          console.log(colors.cyan('Total:', res.length))
+          console.log(colors.red('Rotos:', result.length))
+          
+        })
+    })
+    .catch(err => {
+      console.log(err)
+    })
+}
+
+
+
+// Funcion que obtiene el estatus del Link
+const linkStatus = (link) => {
+  return new Promise((resolve, rejects) => {
+    fetchUrl(link, (error, meta) => {
+      if (meta) {
+        resolve(meta.status);
+      } else {
+        rejects(error)
+      }
+    })
+  })
+}
+
+
+
+const unico = (folder) => {
+  const unique = [];
+  filePath(folder)
+    .then(res => {
+      res.map((link) => {
+        unique.push(link.href)
+      })
+      const mySet = new Set(unique);
+      console.log('_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ ')
+      console.log(colors.green('\n'+ "Unico:", mySet.size))
+    })
+    .catch(err => {
+      console.log(err)
+    })
+}
+
+
+
+
+const directoryPath = (pachParameter) => {
+  return new Promise((resolve, reject) => {
+    fs.readdir(pachParameter, (err, data) => {
+      if (err) {
+        reject(console.log(colors.red('Directorio no encontrado')));
+        console.log(err.me)
+      } else {
+        filter = []
+        data.forEach(file => {
+          if (allowedExtensions.exec(path.extname(file))) { //El método exec() ejecuta una busqueda sobre las coincidencias de una expresión regular en una cadena especifica. Devuelve el resultado como array, o null.
+            //path.extname () devuelve la extensión del path, desde la última aparición del carácter .(punto)  (ejemplo .js , .txt)
+            filter.push(file)
+          }
+        });
+        if (filter.length === 0) { // Object.entries devuelve una lista con las claves y valores del objeto. En caso el objeto sea vacío va a devolver un array vacío.
+          console.log(colors.red('No se econtraron archivos con extension Markdown'));
         } else {
-            console.log(error.code, 'Esta ruta es inválida.')
+          filter.forEach(fileMarkdown => {
+            const absolutePath = `${pachParameter}\\${fileMarkdown}`;
+           resolve(absolutePath)
+            
+          })
         }
-    })
+      }
+    });
+  })
 }
 
-// Obtener los link
-const getLink = (param1, param2) => {
-    let renderer = markdownIt.render(param1);//nos trae los links sin informacion relevante y con etiqueta privada
-    const content = new JSDOM(renderer);
-    const liks = Array.from(content.window.document.querySelectorAll('a')); // crea un array con todas las a
-    allLink = [];
-    liks.forEach(enlace => {
-        if (enlace.href.includes('http')) {
-            detailEnlace = {
-                href: enlace.href,
-                text: enlace.text,
-                file: param2,
-            }
-            allLink.push(detailEnlace);
-        }
-    })
-}
-//Funcion para filtar los estados del link 404 200
-const stateLinks = (link, num) => {
-   link.forEach(elemento => {
-       fetchUrl(elemento.href, (error, meta, body) => {
-            if (meta.status === 200) {
-                // console.log('_________________________________________')
-                console.log(('File: ' + elemento.file + '\n'), colors.blue('Titulo: ' + elemento.text + '\n'), colors.yellow('href: ' + elemento.href + '\n'), colors.green('Estado: ' + meta.status + '\n'), colors.green('Salida: ok'));
-            } else if (meta.status >= 400) {
-                // brokenLinks.push(elemento.href)
-                // console.log(brokenLinks.length)
-                // console.log('________enlace roto__________')
-                console.log(('File: ' + elemento.file + '\n'), colors.blue('Titulo: ' + elemento.text + '\n'), colors.yellow('href: ' + elemento.href + '\n'), colors.red('Estado: ' + meta.status + '\n'), colors.red('Salida: Fallida' ));
-            }
-         })
-    })
-}
 
-// si es un archivo o un directorio 
-if (fs.lstatSync(folder).isFile()) {
-    console.log('Esto es un archivo')
-    file(folder);
-
-} else {
-    console.log('Esto es un directorio')
-    directory(folder);
+module.exports = {
+  directoryPath,
+  filePath,
+  opcionFile,
+  opcionValidate,
+  opcionStats,
+  opcionStatsValidate,
+  unico
 }
-
