@@ -14,7 +14,6 @@ const { Console } = require('console');
 let allLinks = []
 let detailsLinks = {};
 
-
 const allowedExtensions = /(.md|.markdown|.mdown|.mkdn|.mkd|.mdwn|.mdtxt|.text|.Rmd )$/i;  // Extenciones permitidas  Porque sucede esto??
 
 
