@@ -1,9 +1,8 @@
 {
-  "name": "md-links",
+  "name": "md-links-mj",
   "version": "0.1.0",
   "dependencies": {
     "assert": "^2.0.0",
-    "cli-color": "^2.0.0",
     "colors": "^1.4.0",
     "fetch": "^1.1.0",
     "jsdom": "^16.4.0",
